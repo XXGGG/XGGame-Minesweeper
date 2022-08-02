@@ -3,7 +3,9 @@ import { isDev, toggleDev } from '~/composables'
 import { GamePlay } from '~/composables/logic'
 
 const play = new GamePlay(12, 12)
-const state = play.state
+useStorage('XGGameMinesweeperState',play.state)
+const state = computed(() => play.board)
+
 </script>
 
 <template>
@@ -21,14 +23,11 @@ const state = play.state
 
   <div flex='~ gap-1' justify-center>
     <button btn @click="toggleDev()">
-      {{ isDev? 'DEV' : 'NORMAL'}}
+      {{ isDev ? '作弊模式' : '正常模式' }}
     </button>
     <button btn @click="play.reset()">
-      REST
+      重新开始
     </button>
   </div>
 </template>
 
-<route lang="yaml">
-
-</route>

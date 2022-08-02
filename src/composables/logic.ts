@@ -1,3 +1,4 @@
+import { Ref } from "vue";
 import { BlockState } from "~/types";
 
 //计算附近有的炸弹 [directions/方向]
@@ -12,31 +13,43 @@ const directions = [
   [0, 1],
 ];
 
-export class GamePlay {
+interface GameState {
   //定义一个 10*10的二维数组
-  state = ref<BlockState[][]>([]);
+  board: BlockState[][];
+  mineGenerated: boolean;
   //先不生成，等第一下点击以后再生成代码
-  mineGenerated = false;
+  gameState: "play" | "won" | "lost";
+}
 
+export class GamePlay {
+  state = ref() as Ref<GameState>;
   constructor(public width: number, public height: number) {
     //开始就重置一次游戏
     this.reset();
   }
 
+  get board() {
+    return this.state.value.board;
+  }
+
+
   //重置游戏状态
   reset() {
-    this.mineGenerated = false
-    this.state.value = Array.from({ length: this.height }, (_, y) =>
-      Array.from(
-        { length: this.width },
-        (_, x): BlockState => ({
-          x,
-          y,
-          adjacentMines: 0,
-          revealed: false,
-        })
-      )
-    );
+    this.state.value = {
+      mineGenerated: false,
+      gameState: "play",
+      board: Array.from({ length: this.height }, (_, y) =>
+        Array.from(
+          { length: this.width },
+          (_, x): BlockState => ({
+            x,
+            y,
+            adjacentMines: 0,
+            revealed: false,
+          })
+        )
+      ),
+    };
   }
 
   //定义炸弹！【初始化，在计算炸弹的时候，在第一次点击的周围不要生成炸弹！】
@@ -60,7 +73,7 @@ export class GamePlay {
 
   //循环每一个【数】，然后把这个【数】加上上面的数值，就是它的 8个方位！
   updateNumbers() {
-    this.state.value.forEach((row) => {
+    this.board.forEach((row) => {
       row.forEach((block) => {
         if (block.mine) return;
         //当它是个炸弹，就短路！
@@ -89,26 +102,32 @@ export class GamePlay {
         // if (state[y2][x2].mine)
         //   block.adjacentMines += 1;
 
-        return this.state.value[y2][x2]; //返回位置周围的<x,y>编号
+        return this.board[y2][x2]; //返回位置周围的<x,y>编号
       })
       .filter(Boolean) as BlockState[];
   }
 
   //点击以后的效果
   onClick(block: BlockState) {
-    if (!this.mineGenerated) {
+    if (this.state.value.gameState !== "play") return;
+
+    if (!this.state.value.mineGenerated) {
       //第一次点击以后再生成炸弹💣
-      this.generateMines(this.state.value, block); //传点击的坐标过去！
-      this.mineGenerated = true;
+      this.generateMines(this.board, block); //传点击的坐标过去！
+      this.state.value.mineGenerated = true;
     }
     this.expendZero(block);
     block.revealed = true; //点击以后就是翻开
     if (block.mine) {
-      alert("BOOOOM!");
+      this.state.value.gameState = "lost";
+      this.showAllMines();
+      return;
     }
   }
   //右键
   onRightClick(block: BlockState) {
+    if (this.state.value.gameState !== "play") return;
+
     if (block.revealed) return;
     block.flagged = !block.flagged;
   }
@@ -129,15 +148,28 @@ export class GamePlay {
   //检查是否胜利
   checkGameState() {
     //如果没有还没有生成炸弹就先不要去判断
-    if (!this.mineGenerated) return;
+    if (!this.state.value.mineGenerated) return;
 
-    const blocks = this.state.value.flat();
+    const blocks = this.board.flat();
 
     //  所有坐标被翻开了或者标记上🚩了才返回【true】
     if (blocks.every((block) => block.revealed || block.flagged))
-      if (blocks.some((block) => block.flagged && !block.mine))
+      if (blocks.some((block) => block.flagged && !block.mine)) {
         //检查任何一个坐标【被标记】了并且【不是炸弹】的时候就返回 You cheat
-        alert("You cheat!");
-      else alert("You win!");
+        // alert("You cheat!");
+        this.state.value.gameState = "lost";
+        this.showAllMines();
+      } else {
+        //  alert("You win!");
+        this.state.value.gameState = "won";
+      }
   }
+
+  //踩到炸弹了
+  showAllMines() {
+    this.board.flat().forEach((i) => {
+      if (i.mine) i.revealed = true;
+    });
+  }
+  // markWindow;
 }
