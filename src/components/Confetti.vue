@@ -17,14 +17,14 @@ function congrats() {
   } as confetti.Options
   confetti({
     ...defaults,
-    particleCount: 80,
+    particleCount: 100,
     spread: 100,
     origin: { y: 0 },
   })
   setTimeout(() => {
     confetti({
       ...defaults,
-      particleCount: 50,
+      particleCount: 100,
       angle: 60,
       spread: 80,
       origin: { x: 0 },
@@ -33,7 +33,7 @@ function congrats() {
   setTimeout(() => {
     confetti({
       ...defaults,
-      particleCount: 50,
+      particleCount: 100,
       angle: 120,
       spread: 80,
       origin: { x: 1 },
