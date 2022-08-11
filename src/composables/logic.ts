@@ -1,4 +1,5 @@
 import { Ref } from "vue";
+import { matchedRouteKey } from "vue-router";
 import { BlockState } from "~/types";
 
 //计算附近有的炸弹 [directions/方向]
@@ -23,7 +24,11 @@ interface GameState {
 
 export class GamePlay {
   state = ref() as Ref<GameState>;
-  constructor(public width: number, public height: number) {
+  constructor(
+    public width: number,
+    public height: number,
+    public mines: number
+  ) {
     //开始就重置一次游戏
     this.reset();
   }
@@ -31,7 +36,6 @@ export class GamePlay {
   get board() {
     return this.state.value.board;
   }
-
 
   //重置游戏状态
   reset() {
@@ -52,22 +56,71 @@ export class GamePlay {
     };
   }
 
+  //点击以后的效果
+  onClick(block: BlockState) {
+    if (this.state.value.gameState !== "play") return;
+
+    if (!this.state.value.mineGenerated) {
+      //第一次点击以后再生成炸弹💣
+      this.generateMines(this.board, block); //传点击的坐标过去！
+      this.state.value.mineGenerated = true;
+    }
+    this.expendZero(block);
+    block.revealed = true; //点击以后就是翻开
+    if (block.mine) {
+      this.state.value.gameState = "lost";
+      this.showAllMines();
+      return;
+    }
+  }
+
+  random(min: number, max: number) {
+    return Math.random() * (max - min) + min;
+  }
+
+  randomInt(min: number, max: number) {
+    return Math.round(this.random(min, max));
+  }
   //定义炸弹！【初始化，在计算炸弹的时候，在第一次点击的周围不要生成炸弹！】
   generateMines(state: BlockState[][], initial: BlockState) {
-    //initial 的【点击的坐标】
-    for (const row of state) {
-      for (const block of row) {
-        //如果第一下点击传过来的坐标x - 现在遍历的坐标x 左右正负都小于1 也就是在周围就continue!
-        if (Math.abs(initial.x - block.x) < 1) {
-          continue; //continue 就是跳过这个循环遍历 进行下一次遍历
-        }
-        if (Math.abs(initial.y - block.y) < 1) {
-          //相同原理
-          continue;
-        }
-        block.mine = Math.random() < 0.2;
+    const placeRandom = () =>{
+      const x = this.randomInt(0, this.width - 1);
+      const y = this.randomInt(0, this.height - 1);
+      const block = state[y][x];
+      if (Math.abs(initial.x - block.x) < 1) {
+        return false;
       }
+      if (Math.abs(initial.y - block.y) < 1) {
+        return false;
+      }
+      if (block.mine) {
+        return false;
+      }
+      block.mine = true;
+      return true
     }
+    Array.from({ length: this.mines }, () => null).forEach(()=>{
+      let placed = false
+      while (!placed) {
+        placed = placeRandom()
+      }
+    })
+    
+
+    //initial 的【点击的坐标】
+    // for (const row of state) {
+    //   for (const block of row) {
+    //     //如果第一下点击传过来的坐标x - 现在遍历的坐标x 左右正负都小于1 也就是在周围就continue!
+    //     if (Math.abs(initial.x - block.x) < 1) {
+    //       continue; //continue 就是跳过这个循环遍历 进行下一次遍历
+    //     }
+    //     if (Math.abs(initial.y - block.y) < 1) {
+    //       //相同原理
+    //       continue;
+    //     }
+    //     block.mine = Math.random() < 0.2;
+    //   }
+    // }
     this.updateNumbers();
   }
 
@@ -107,23 +160,6 @@ export class GamePlay {
       .filter(Boolean) as BlockState[];
   }
 
-  //点击以后的效果
-  onClick(block: BlockState) {
-    if (this.state.value.gameState !== "play") return;
-
-    if (!this.state.value.mineGenerated) {
-      //第一次点击以后再生成炸弹💣
-      this.generateMines(this.board, block); //传点击的坐标过去！
-      this.state.value.mineGenerated = true;
-    }
-    this.expendZero(block);
-    block.revealed = true; //点击以后就是翻开
-    if (block.mine) {
-      this.state.value.gameState = "lost";
-      this.showAllMines();
-      return;
-    }
-  }
   //右键
   onRightClick(block: BlockState) {
     if (this.state.value.gameState !== "play") return;
@@ -141,7 +177,7 @@ export class GamePlay {
     //以下代码是处理 数值为0的👇 对这个点的方向进行一个循环遍历！
     this.getSiblings(block).forEach((s) => {
       s.revealed = true;
-      this.expendZero(s);
+      // this.expendZero(s);
     });
   }
 
@@ -156,11 +192,11 @@ export class GamePlay {
     if (blocks.every((block) => block.revealed || block.flagged))
       if (blocks.some((block) => block.flagged && !block.mine)) {
         //检查任何一个坐标【被标记】了并且【不是炸弹】的时候就返回 You cheat
-        // alert("You cheat!");
+        alert("你踩到炸弹了！");
         this.state.value.gameState = "lost";
         this.showAllMines();
       } else {
-        //  alert("You win!");
+        alert("胜 利 ！");
         this.state.value.gameState = "won";
       }
   }
@@ -171,5 +207,4 @@ export class GamePlay {
       if (i.mine) i.revealed = true;
     });
   }
-  // markWindow;
 }
