@@ -65,13 +65,14 @@ export class GamePlay {
       this.generateMines(this.board, block); //传点击的坐标过去！
       this.state.value.mineGenerated = true;
     }
-    this.expendZero(block);
+
     block.revealed = true; //点击以后就是翻开
     if (block.mine) {
       this.state.value.gameState = "lost";
       this.showAllMines();
       return;
     }
+    this.expendZero(block);
   }
 
   random(min: number, max: number) {
@@ -83,7 +84,7 @@ export class GamePlay {
   }
   //定义炸弹！【初始化，在计算炸弹的时候，在第一次点击的周围不要生成炸弹！】
   generateMines(state: BlockState[][], initial: BlockState) {
-    const placeRandom = () =>{
+    const placeRandom = () => {
       const x = this.randomInt(0, this.width - 1);
       const y = this.randomInt(0, this.height - 1);
       const block = state[y][x];
@@ -97,15 +98,14 @@ export class GamePlay {
         return false;
       }
       block.mine = true;
-      return true
-    }
-    Array.from({ length: this.mines }, () => null).forEach(()=>{
-      let placed = false
+      return true;
+    };
+    Array.from({ length: this.mines }, () => null).forEach(() => {
+      let placed = false;
       while (!placed) {
-        placed = placeRandom()
+        placed = placeRandom();
       }
-    })
-    
+    });
 
     //initial 的【点击的坐标】
     // for (const row of state) {
@@ -170,14 +170,16 @@ export class GamePlay {
 
   //点击以后展开周围的0
   expendZero(block: BlockState) {
-    if (block.adjacentMines || block.revealed) {
+    if (block.adjacentMines) {
       //如果炸弹数值不为0 就直接返回
       return;
     }
     //以下代码是处理 数值为0的👇 对这个点的方向进行一个循环遍历！
     this.getSiblings(block).forEach((s) => {
-      s.revealed = true;
-      // this.expendZero(s);
+      if (!s.revealed) {
+        s.revealed = true;
+        this.expendZero(s);
+      }
     });
   }
 

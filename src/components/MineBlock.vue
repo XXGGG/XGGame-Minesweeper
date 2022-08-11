@@ -1,7 +1,7 @@
 <template>
   <button
-    w-10
-    h-10
+    min-w-10
+    min-h-10
     border="1 gray-400/30"
     flex="~"
     items-center
