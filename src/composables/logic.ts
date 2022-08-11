@@ -194,11 +194,9 @@ export class GamePlay {
     if (blocks.every((block) => block.revealed || block.flagged))
       if (blocks.some((block) => block.flagged && !block.mine)) {
         //检查任何一个坐标【被标记】了并且【不是炸弹】的时候就返回 You cheat
-        alert("你踩到炸弹了！");
         this.state.value.gameState = "lost";
         this.showAllMines();
       } else {
-        alert("胜 利 ！");
         this.state.value.gameState = "won";
       }
   }

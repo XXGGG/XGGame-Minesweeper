@@ -45,4 +45,6 @@ watchEffect(()=>{
     </button>
     <button btn @click="play.reset()">重新开始</button>
   </div>
+
+  <Confetti :passed="play.state.value.gameState === 'won'"/>
 </template>
