@@ -13,13 +13,15 @@ const directions = [
   [0, 1],
 ];
 
+type GameStatus = "play" | "won" | "lost";
 interface GameState {
   //定义一个 10*10的二维数组
   board: BlockState[][];
   mineGenerated: boolean;
   //先不生成，等第一下点击以后再生成代码
-  gameState: "play" | "won" | "lost";
+  status: GameStatus;
   startMS: number;
+  endMS?: number;
 }
 
 export class GamePlay {
@@ -39,6 +41,7 @@ export class GamePlay {
 
   //重置游戏状态
   reset(width = this.width, height = this.height, mines = this.mines) {
+    console.log(width)
     this.width = width;
     this.height = height;
     this.mines = mines;
@@ -46,7 +49,7 @@ export class GamePlay {
     this.state.value = {
       startMS: +Date.now(),
       mineGenerated: false,
-      gameState: "play",
+      status: "play",
       board: Array.from({ length: this.height }, (_, y) =>
         Array.from(
           { length: this.width },
@@ -63,7 +66,7 @@ export class GamePlay {
 
   //点击以后的效果
   onClick(block: BlockState) {
-    if (this.state.value.gameState !== "play") return;
+    if (this.state.value.status !== "play") return;
 
     if (!this.state.value.mineGenerated) {
       //第一次点击以后再生成炸弹💣
@@ -73,8 +76,7 @@ export class GamePlay {
 
     block.revealed = true; //点击以后就是翻开
     if (block.mine) {
-      this.state.value.gameState = "lost";
-      this.showAllMines();
+      this.onGameOver("lost");
       return;
     }
     this.expendZero(block);
@@ -167,7 +169,7 @@ export class GamePlay {
 
   //右键
   onRightClick(block: BlockState) {
-    if (this.state.value.gameState !== "play") return;
+    if (this.state.value.status !== "play") return;
 
     if (block.revealed) return;
     block.flagged = !block.flagged;
@@ -196,13 +198,12 @@ export class GamePlay {
     const blocks = this.board.flat();
 
     //  所有坐标被翻开了或者标记上🚩了才返回【true】
-    if (blocks.every((block) => block.revealed || block.flagged))
+    if (blocks.every((block) => block.revealed || block.flagged || block.mine))
       if (blocks.some((block) => block.flagged && !block.mine)) {
         //检查任何一个坐标【被标记】了并且【不是炸弹】的时候就返回 You cheat
-        this.state.value.gameState = "lost";
-        this.showAllMines();
+        this.onGameOver("lost");
       } else {
-        this.state.value.gameState = "won";
+        this.onGameOver("won");
       }
   }
 
@@ -211,5 +212,43 @@ export class GamePlay {
     this.board.flat().forEach((i) => {
       if (i.mine) i.revealed = true;
     });
+  }
+
+  //自动展开👇
+  autoExpand(block: BlockState) {
+    const sliglings = this.getSiblings(block);
+    const flags = sliglings.reduce((a, b) => a + (b.flagged ? 1 : 0), 0);
+    const notRevealed = sliglings.reduce(
+      (a, b) => a + (!b.revealed && !b.flagged ? 1 : 0),
+      0
+    );
+
+    if (flags === block.adjacentMines) {
+      sliglings.forEach((i) => {
+        if (!i.flagged) {
+          i.revealed = true;
+          if (i.mine) {
+            this.onGameOver("lost");
+          }
+        }
+      });
+    }
+    const missingFlags = block.adjacentMines - flags;
+    if (notRevealed === missingFlags) {
+      sliglings.forEach((i) => {
+        if (!i.revealed && !i.flagged) {
+          i.flagged = true;
+        }
+      });
+    }
+  }
+
+  //游戏结束！
+  onGameOver(status: GameStatus) {
+    this.state.value.status = status;
+    this.state.value.endMS = +Date.now();
+    if (status === "lost") {
+      this.showAllMines();
+    }
   }
 }
