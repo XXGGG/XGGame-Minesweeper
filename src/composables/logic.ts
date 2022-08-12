@@ -14,6 +14,7 @@ const directions = [
 ];
 
 type GameStatus = "play" | "won" | "lost";
+type GameDifficulty = "easy" | "medium" | "hard";
 interface GameState {
   //定义一个 10*10的二维数组
   board: BlockState[][];
@@ -22,6 +23,7 @@ interface GameState {
   status: GameStatus;
   startMS: number;
   endMS?: number;
+  difficulty?: GameDifficulty;
 }
 
 export class GamePlay {
@@ -41,13 +43,12 @@ export class GamePlay {
 
   //重置游戏状态
   reset(width = this.width, height = this.height, mines = this.mines) {
-    console.log(width)
     this.width = width;
     this.height = height;
     this.mines = mines;
 
     this.state.value = {
-      startMS: +Date.now(),
+      startMS: 0,
       mineGenerated: false,
       status: "play",
       board: Array.from({ length: this.height }, (_, y) =>
@@ -66,12 +67,13 @@ export class GamePlay {
 
   //点击以后的效果
   onClick(block: BlockState) {
-    if (this.state.value.status !== "play") return;
+    if (this.state.value.status !== "play" || block.flagged) return;
 
     if (!this.state.value.mineGenerated) {
       //第一次点击以后再生成炸弹💣
       this.generateMines(this.board, block); //传点击的坐标过去！
       this.state.value.mineGenerated = true;
+      this.state.value.startMS = +Date.now();
     }
 
     block.revealed = true; //点击以后就是翻开
@@ -183,7 +185,7 @@ export class GamePlay {
     }
     //以下代码是处理 数值为0的👇 对这个点的方向进行一个循环遍历！
     this.getSiblings(block).forEach((s) => {
-      if (!s.revealed) {
+      if (!s.revealed && !s.flagged) {
         s.revealed = true;
         this.expendZero(s);
       }
@@ -210,12 +212,13 @@ export class GamePlay {
   //踩到炸弹了
   showAllMines() {
     this.board.flat().forEach((i) => {
-      if (i.mine) i.revealed = true;
+      if (i.mine && !i.flagged) i.revealed = true;
     });
   }
 
   //自动展开👇
   autoExpand(block: BlockState) {
+    if (this.state.value.status !== "play" || block.flagged) return;
     const sliglings = this.getSiblings(block);
     const flags = sliglings.reduce((a, b) => a + (b.flagged ? 1 : 0), 0);
     const notRevealed = sliglings.reduce(

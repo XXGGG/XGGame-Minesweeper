@@ -10,10 +10,12 @@
     :class="getBlockClass(block)"
   >
     <template v-if="block.flagged">
-      <div i-carbon-flag c-yellow></div>
+      <!-- <div i-carbon-flag c-yellow></div> -->
+      <div c-yellow>🚩</div>
     </template>
     <template v-if="block.revealed || isDev">
-      <div v-if="block.mine" c-red i-carbon-uv-index></div>
+      <!-- <div v-if="block.mine" c-red i-carbon-uv-index></div> -->
+      <div v-if="block.mine" c-red >💣</div>
       <div v-else font-bold>{{ block.adjacentMines }}</div>
     </template>
   </button>

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { isDev, toggleDev } from "~/composables";
+// import { isDev, toggleDev } from "~/composables";
 import { GamePlay } from "~/composables/logic";
 
-const play = new GamePlay(9,9,10); //横坐标 纵坐标 炸弹数量
+const play = new GamePlay(9, 9, 10); //横坐标 纵坐标 炸弹数量
 useStorage("XGGameMinesweeperState", play.state);
 const state = $computed(() => play.board);
 
@@ -15,7 +15,7 @@ function newGame(difficulty: "easy" | "medium" | "hard") {
       play.reset(16, 16, 40);
       break;
     case "hard":
-      play.reset(16, 30, 99);
+      play.reset(30, 16, 99);
       break;
   }
 }
@@ -48,7 +48,7 @@ watchEffect(() => {
     <div flex justify-center>
       <div font-mono text-2xl flex="~ gap-1" items-center>
         <div i-carbon-timer></div>
-        {{ timeMs }}
+        {{ play.state.value.mineGenerated ? timeMs : '0'}}
       </div>
     </div>
 
@@ -72,6 +72,12 @@ watchEffect(() => {
         >
         </MineBlock>
       </div>
+    </div>
+  </div>
+
+  <div flex justify-center v-if="play.state.value.status != 'play'">
+    <div font-mono text-2xl flex="~ gap-1" items-center>
+      {{ play.state.value.status == 'won' ? '胜利':'失败'}}
     </div>
   </div>
 

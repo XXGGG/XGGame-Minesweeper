@@ -1,7 +1,44 @@
-# XGGame - Minesweeper
+<p align="center">
+<img src='./public/Minesweeper.svg' height="150">
+</p>
 
-- 演示：[https://xggame-minesweeper.netlify.app/](https://xggame-minesweeper.netlify.app/)
+<h1 align="center">
+💣 XGGame - Minesweeper 💣
+</h1>
+<p align="center">
+A classic minesweeper game.
+<p>
+<p align="center">
+    一个经典的扫雷游戏！
+<p>
 
-## 几件事情👇
-1. 这次使用的是 👉 Vitesse-lite 这个起手模板，emmm... 本来想直接使用Vitesse的，但是它里面有很多我还不熟悉的配置~ 所以就先使用这个轻量点的，但是还是有一些配置需要了解跟学习~
-2. 这次没有使用Github pages来部署。 因为这次是看【Anthony Fu】的视频跟着做的项目，他用的是【Netilify】来部署，所以就尝尝鲜，刚好了解一下最近这些静态部署网站的方式！而且这个起手模板也是配置好了Netilify
+<p align="center">
+<a href="https://xggame-minesweeper.netlify.app/"><b>开始游戏</b></a>
+</p>
+<!-- <p align="center">
+ <a href="">Chrome</a> | <a href="">Edge</a> | <a href="">QQ浏览器</a> | <a href="">360浏览器</a>
+</p> -->
+
+<br>
+<br>
+
+## 🕹️ 玩法
+
+1. 点开所有不存在💣的方块格子则【胜利】
+2. 踩到💣则【失败】
+3. 鼠标左键单击点开格子
+4. 点开的格子周围如果没有炸弹则会继续打开旁边的格子，直至周围存在💣
+5. 鼠标右键可以给格子标🚩，表示该方格是找到的💣
+6. 双击可以打开周围除了标🚩的格子
+## 📖 介绍
+
+1. 这个扫雷小游戏是跟着【Anthony Fu】大佬的视频做的！做了一些小改动~
+2. 起手模板 👉 【Vitesse-lite】 
+3. 这次没有使用 Github pages 来部署，用了【Netilify】。 因为【Anthony Fu】的视频用了这个。
+
+## 🚀 记录
+
+- [谢夏戈的博客 | 💣 XGGame-Minesweeper](https://xxggg.github.io/Project/XGGame-Minesweeper.html)
+
+## 🖼️ 展示
+![图 1](img/showMinesweeper.png)  

@@ -1,4 +1,4 @@
-//定义一下棋盘！
+//定义每个棋子的属性！
 export interface BlockState {
   x: number;
   y: number;
